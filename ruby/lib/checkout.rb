@@ -1,12 +1,37 @@
 class Checkout
   def initialize(pricing_rules)
+    @rules = pricing_rules
+    @totals = Hash.new(0)
   end
 
   def scan(item)
+   @totals[item] += 1
   end
 
   def total
-    0
+    retval = 0
+    @totals.each do |item, num_purchased|
+        rule = _get_rule(item)
+        if rule[:special_quantity]
+            num_special = ( num_purchased / rule[:special_quantity] ).to_i
+            retval += num_special * rule[:special_price]
+            num_purchased = ( num_purchased % rule[:special_quantity] )
+        end
+        retval += num_purchased * rule[:price]
+    end
+    retval
+  end
+
+  def _get_rule(item)
+    @rules.select{|rule| rule[:sku] == item}.first
+    #active = nil
+    #@rules.each do |rule|
+    #    if rule[:sku] == item
+    #        active = rule
+    #        break
+    #    end
+    #end
+    #active
   end
 end
 
