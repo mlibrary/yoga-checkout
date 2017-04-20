@@ -1,12 +1,29 @@
 class Checkout
   def initialize(pricing_rules)
+    @rules = {}
+    pricing_rules.each do | rule |
+      @rules[rule[:sku]] = rule
+    end
+
+    # sku => count
+    @items = Hash.new 0
   end
 
   def scan(item)
+    @items[item] += 1 
   end
 
   def total
-    0
+    @total = 0
+    @items.each do | sku, count |
+      if @rules[sku][:special_quantity].nil?
+        @total += count * @rules[sku][:price]
+      else
+        @total += (count / @rules[sku][:special_quantity]).floor * @rules[sku][:special_price]
+        @total += (count % @rules[sku][:special_quantity]) * @rules[sku][:price]
+      end
+    end
+    @total
   end
 end
 
