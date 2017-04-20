@@ -8,12 +8,12 @@ class Checkout
 
   def scan(item_sku)
     @scanned_items[item_sku] += 1
-    @total += @rules[item_sku].price_for_this_one(@scanned_items[item_sku])
+    @total += @rules[item_sku].marginal_cost(@scanned_items[item_sku])
   end
 
   def initialize_rules(pricing_rules)
     pricing_rules.map do |rule|
-      [rule[:sku],PriceRule.new(rule)]
+      [rule[:sku],PriceRule.from_hash(rule)]
     end.to_h
   end
 
@@ -21,23 +21,43 @@ class Checkout
 end
 
 class PriceRule
-  def initialize(**kwargs)
-    @price = kwargs[:price]
-    @special_quantity = kwargs[:special_quantity]
-
-    if @special_quantity
-      special_price = kwargs[:special_price]
-      @marginal_special_price = special_price - @price * (@special_quantity - 1)
+  def self.from_hash(rule)
+    if(rule[:special_quantity]) 
+      SpecialPriceRule.new(rule)
+    else
+      BasicPriceRule.new(rule)
     end
   end
 
-  def price_for_this_one(how_many_total)
-    return @price if @special_quantity.nil?
+  def marginal_cost
+    raise RuntimeError, "unimplemented"
+  end
+end
 
-    if how_many_total % @special_quantity == 0
+class BasicPriceRule < PriceRule
+  def initialize(price:, **_)
+    @price = price
+  end
+
+  def marginal_cost(_)
+    @price
+  end
+end
+
+class SpecialPriceRule < BasicPriceRule
+  def initialize(price:, special_quantity:, special_price:, **_)
+    super(price: price)
+    @special_quantity = special_quantity
+    @marginal_special_price = special_price - @price * (@special_quantity - 1)
+  end
+
+  # items_so_far: How many items of this kind have we seen so far? 
+  # Returns marginal cost of this item
+  def marginal_cost(items_so_far)
+    if items_so_far % @special_quantity == 0
       @marginal_special_price
     else
-      @price
+      super
     end
   end
 end
