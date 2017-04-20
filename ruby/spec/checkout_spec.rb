@@ -22,6 +22,10 @@ RSpec::describe Checkout do
       ["AAABB",  175],
       ["AAABBD", 190],
       ["DABABA", 190],
+
+      ["E", 100],
+      ["EE", 200],
+      ["EEE", 150]
     ].each do |items, total|
       it "prices '#{items}' as #{total}" do
         checkout = Checkout.new(RULES)

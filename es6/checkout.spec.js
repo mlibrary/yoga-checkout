@@ -21,6 +21,10 @@ describe('Checkout', () => {
     ["AAABB",  175],
     ["AAABBD", 190],
     ["DABABA", 190],
+
+    ["E", 100],
+    ["EE", 200],
+    ["EEE", 150]
   ].forEach((row) => {
     const [items, total] = row;
     it(`prices '${items}' as ${total}`, () => {
