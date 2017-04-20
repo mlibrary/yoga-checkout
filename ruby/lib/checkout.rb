@@ -21,23 +21,25 @@ class Checkout
 end
 
 class PriceRule
-  def initialize(**args)
-    @price = args[:price]
-    @special_quantity = args[:special_quantity]
-    @special_price = args[:special_price]
-  end
+  def initialize(**kwargs)
+    @price = kwargs[:price]
+    @special_quantity = kwargs[:special_quantity]
 
-  def price_for_this_one(how_many_total)
-    return price if special_quantity.nil?
-
-    if how_many_total % special_quantity == 0
-      special_price - price * (special_quantity - 1)
-    else
-      price
+    if @special_quantity
+      special_price = kwargs[:special_price]
+      @marginal_special_price = special_price - @price * (@special_quantity - 1)
     end
   end
 
-  attr_accessor :price, :special_quantity, :special_price
+  def price_for_this_one(how_many_total)
+    return @price if @special_quantity.nil?
+
+    if how_many_total % @special_quantity == 0
+      @marginal_special_price
+    else
+      @price
+    end
+  end
 end
 
 RULES = [
